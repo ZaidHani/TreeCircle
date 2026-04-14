@@ -114,18 +114,27 @@ export class Visual {
             return keyParts.join("|");
         }
 
-        private renderFallbackLegend(svgRoot: d3.Selection<any>, categories: any[]): void {
-            if (!this.settings || !this.settings.legend || !this.settings.legend.enableLegend || !categories || categories.length === 0) {
-                return;
-            }
+        private renderFallbackLegend(
+            svgRoot: d3.Selection<any>,
+            categories: any[],
+            categoryColors: { [key: string]: string },
+            activeCategory: string | null,
+            onToggle: (category: string | null) => void
+        ): void {
+            svgRoot.selectAll("g.fallback-legend").remove();
+            if (!this.settings || !this.settings.legend || !this.settings.legend.enableLegend || !categories || categories.length === 0) return;
+
             const fontSize = Math.max(8, this.settings.legend.legendFontSize || 12);
             const spacing = Math.max(12, this.settings.legend.legendItemSpacing || 20);
-            const items = categories.map((c: any, i: number) => "Step " + (i + 1) + ": " + c.source.displayName);
+            const items = categories.map((c: any, i: number) => ({
+                category: c.source.displayName,
+                label: "Step " + (i + 1)
+            }));
 
             const width = Number(svgRoot.attr("width")) || 600;
             const height = Number(svgRoot.attr("height")) || 400;
-            const boxWidth = Math.max(180, Math.min(360, Math.max.apply(null, items.map(x => x.length)) * Math.max(6, fontSize * 0.55) + 26));
-            const boxHeight = items.length * spacing + 12;
+            const boxWidth = 140;
+            const boxHeight = items.length * spacing + 30;
             const pos = this.settings.legend.legendPosition || "top-left";
             let x = 10;
             let y = 10;
@@ -140,28 +149,40 @@ export class Visual {
                 .attr("width", boxWidth)
                 .attr("height", boxHeight)
                 .style("fill", "#ffffff")
-                .style("fill-opacity", 0.9)
+                .style("fill-opacity", 0.92)
                 .style("stroke", "#d0d0d0");
+
+            g.append("text")
+                .attr("x", x + 8)
+                .attr("y", y + 14)
+                .style("font-size", Math.max(9, fontSize - 1) + "px")
+                .style("fill", "#666")
+                .text(activeCategory ? "Filter: " + activeCategory : "Filter: all");
 
             const rows = g.selectAll("g.legend-row")
                 .data(items)
                 .enter()
                 .append("g")
-                .attr("transform", (d: any, i: number) => "translate(" + (x + 10) + "," + (y + 8 + i * spacing) + ")");
+                .attr("class", "legend-row")
+                .style("cursor", "pointer")
+                .attr("transform", (d: any, i: number) => "translate(" + (x + 10) + "," + (y + 20 + i * spacing) + ")")
+                .on("click", (d: any) => {
+                    onToggle(activeCategory === d.category ? null : d.category);
+                });
 
             rows.append("rect")
                 .attr("x", 0)
                 .attr("y", 0)
                 .attr("width", 10)
                 .attr("height", 10)
-                .style("fill", this.settings.treeColors && this.settings.treeColors.arcBaseColor ? this.settings.treeColors.arcBaseColor : "#4C78A8");
+                .style("fill", (d: any) => categoryColors[d.category] || "#4C78A8");
 
             rows.append("text")
                 .attr("x", 16)
                 .attr("y", 9)
                 .style("font-size", fontSize + "px")
-                .style("fill", "#333")
-                .text((d: any) => d);
+                .style("fill", (d: any) => (activeCategory && activeCategory !== d.category) ? "#999" : "#333")
+                .text((d: any) => d.label);
         }
 
         private renderFallbackTree(options: VisualUpdateOptions, height: number, width: number): void {
@@ -176,10 +197,9 @@ export class Visual {
                 this.fallbackDataKey = dataKey;
             }
             const data = this.fallbackRoot;
-            const margin = { top: 20, right: 80, bottom: 20, left: 220 };
+            const margin = { top: 20, right: 20, bottom: 20, left: 120 };
             const w = Math.max(300, width - margin.left - margin.right);
             const h = Math.max(200, height - margin.top - margin.bottom);
-            const extraLabelSpace = 420;
             const nodeTextSize = Math.max(8, this.settings && this.settings.treeLabels ? this.settings.treeLabels.nodeTextSize : 12);
             const categoryLabelX = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelXpos : 0;
             const categoryLabelY = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelYpos : 0;
@@ -192,16 +212,22 @@ export class Visual {
             const nodeColorSeries = this.settings && this.settings.treeColors ? this.settings.treeColors.nodeColorSeries : true;
             const linkColorSeries = this.settings && this.settings.treeColors ? this.settings.treeColors.linkColorSeries : true;
             const maxCount = Math.max(1, d3.max(this.flattenNodes(data), function(n: any) { return n.count || 1; }) as any);
+            const categoryColors: { [key: string]: string } = {};
+            categories.forEach((c: any) => {
+                const key = c.source.displayName;
+                if (!categoryColors[key]) {
+                    categoryColors[key] = this.host.colorPalette.getColor("cat:" + key).value;
+                }
+            });
+            let activeCategory: string | null = null;
 
             const tree = d3.layout.tree().size([h, w]);
             const diagonal = d3.svg.diagonal().projection(function(d: any) { return [d.y, d.x]; });
 
             const svgRoot = container
                 .append("svg")
-                .attr("width", w + margin.left + margin.right + extraLabelSpace)
+                .attr("width", w + margin.left + margin.right)
                 .attr("height", h + margin.top + margin.bottom);
-
-            this.renderFallbackLegend(svgRoot, categories);
 
             const svg = svgRoot
                 .append("g")
@@ -268,12 +294,12 @@ export class Visual {
 
                 nodeEnter.each((d: any) => {
                     if (!d.__seriesColor) {
-                        d.__seriesColor = this.host.colorPalette.getColor((d.category || "") + ":" + (d.name || "")).value;
+                        d.__seriesColor = categoryColors[d.category] || arcBaseColor;
                     }
                 });
 
                 nodeEnter.append("title")
-                    .text(function(d: any) { return (d.category && d.category !== "Root" ? d.category + ": " : "") + d.name; });
+                    .text(function(d: any) { return d.name; });
 
                 nodeEnter.append("circle")
                     .attr("r", function(d: any) {
@@ -294,13 +320,15 @@ export class Visual {
                     .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
                     .style("font-size", nodeTextSize + "px")
                     .text((d: any) => {
-                        if (!d.category || d.category === "Root") return this.truncateLabel(d.name, 75);
-                        return this.truncateLabel(d.category + ": " + d.name, 75);
+                        return this.truncateLabel(d.name, 24);
                     });
 
                 node.transition()
                     .duration(250)
-                    .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
+                    .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; })
+                    .style("opacity", function(d: any) {
+                        return !activeCategory || d.category === activeCategory || d.category === "Root" ? 1 : 0.2;
+                    });
 
                 node.exit().transition()
                     .duration(250)
@@ -329,7 +357,10 @@ export class Visual {
 
                 link.transition()
                     .duration(250)
-                    .attr("d", diagonal);
+                    .attr("d", diagonal)
+                    .style("opacity", function(d: any) {
+                        return !activeCategory || d.target.category === activeCategory ? 1 : 0.12;
+                    });
 
                 link.exit().transition()
                     .duration(250)
@@ -345,6 +376,12 @@ export class Visual {
                 });
             };
 
+            const toggleCategory = (category: string | null) => {
+                activeCategory = category;
+                this.renderFallbackLegend(svgRoot, categories, categoryColors, activeCategory, toggleCategory);
+                update(data);
+            };
+            this.renderFallbackLegend(svgRoot, categories, categoryColors, activeCategory, toggleCategory);
             update(data);
         }
 
@@ -352,7 +389,7 @@ export class Visual {
         
 
         constructor(options: VisualConstructorOptions) {
-            options.element.style.overflowX = 'auto';
+            options.element.style.overflowX = "hidden";
             this.host = options.host;            
             this.target = options.element;            
             if (typeof document !== "undefined") {                
