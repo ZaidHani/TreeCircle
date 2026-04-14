@@ -32,7 +32,53 @@ export class VisualSettings {
     public legend: legend = new legend();
 
     public static parse(dataView: any): VisualSettings {
-        return VisualSettings.getDefault();
+        const settings = VisualSettings.getDefault();
+        const objects = dataView && dataView.metadata ? dataView.metadata.objects : null;
+        if (!objects) {
+            return settings;
+        }
+
+        settings.treeOptions.treeStyle = getValue(objects, "treeOptions", "treeStyle", settings.treeOptions.treeStyle);
+        settings.treeOptions.filterMode = getValue(objects, "treeOptions", "filterMode", settings.treeOptions.filterMode);
+        settings.treeOptions.initialMode = getValue(objects, "treeOptions", "initialMode", settings.treeOptions.initialMode);
+        settings.treeOptions.weightLinks = getValue(objects, "treeOptions", "weightLinks", settings.treeOptions.weightLinks);
+        settings.treeOptions.linksSize = getValue(objects, "treeOptions", "linksSize", settings.treeOptions.linksSize);
+        settings.treeOptions.linksOpacity = getValue(objects, "treeOptions", "linksOpacity", settings.treeOptions.linksOpacity);
+        settings.treeOptions.nodesTooltips = getValue(objects, "treeOptions", "nodesTooltips", settings.treeOptions.nodesTooltips);
+        settings.treeOptions.expandMode = getValue(objects, "treeOptions", "expandMode", settings.treeOptions.expandMode);
+        settings.treeOptions.translationsDuration = getValue(objects, "treeOptions", "translationsDuration", settings.treeOptions.translationsDuration);
+        settings.treeOptions.leftMarginFirstNode = getValue(objects, "treeOptions", "leftMarginFirstNode", settings.treeOptions.leftMarginFirstNode);
+        settings.treeOptions.rightMarginFirstNode = getValue(objects, "treeOptions", "rightMarginFirstNode", settings.treeOptions.rightMarginFirstNode);
+        settings.treeOptions.topMarginFirstNode = getValue(objects, "treeOptions", "topMarginFirstNode", settings.treeOptions.topMarginFirstNode);
+        settings.treeOptions.bottomMarginFirstNode = getValue(objects, "treeOptions", "bottomMarginFirstNode", settings.treeOptions.bottomMarginFirstNode);
+        settings.treeOptions.progressPie = getValue(objects, "treeOptions", "progressPie", settings.treeOptions.progressPie);
+
+        settings.treeLabels.allMemberName = getValue(objects, "treeLabels", "allMemberName", settings.treeLabels.allMemberName);
+        settings.treeLabels.nodeTextSize = getValue(objects, "treeLabels", "nodeTextSize", settings.treeLabels.nodeTextSize);
+        settings.treeLabels.magicLabels = getValue(objects, "treeLabels", "magicLabels", settings.treeLabels.magicLabels);
+        settings.treeLabels.autoScaleValues = getValue(objects, "treeLabels", "autoScaleValues", settings.treeLabels.autoScaleValues);
+        settings.treeLabels.valueAsPercent = getValue(objects, "treeLabels", "valueAsPercent", settings.treeLabels.valueAsPercent);
+        settings.treeLabels.numberDecimals = getValue(objects, "treeLabels", "numberDecimals", settings.treeLabels.numberDecimals);
+        settings.treeLabels.categoryLabelXpos = getValue(objects, "treeLabels", "categoryLabelXpos", settings.treeLabels.categoryLabelXpos);
+        settings.treeLabels.categoryLabelYpos = getValue(objects, "treeLabels", "categoryLabelYpos", settings.treeLabels.categoryLabelYpos);
+        settings.treeLabels.valueLabelXpos = getValue(objects, "treeLabels", "valueLabelXpos", settings.treeLabels.valueLabelXpos);
+        settings.treeLabels.valueLabelYpos = getValue(objects, "treeLabels", "valueLabelYpos", settings.treeLabels.valueLabelYpos);
+        settings.treeLabels.backgroundLabels = getValue(objects, "treeLabels", "backgroundLabels", settings.treeLabels.backgroundLabels);
+
+        settings.treeColors.arcBaseColor = getColor(objects, "treeColors", "arcBaseColor", settings.treeColors.arcBaseColor);
+        settings.treeColors.arcCumplimientoOK = getColor(objects, "treeColors", "arcCumplimientoOK", settings.treeColors.arcCumplimientoOK);
+        settings.treeColors.arcCumplimientoKO = getColor(objects, "treeColors", "arcCumplimientoKO", settings.treeColors.arcCumplimientoKO);
+        settings.treeColors.linkColorSeries = getValue(objects, "treeColors", "linkColorSeries", settings.treeColors.linkColorSeries);
+        settings.treeColors.linkColor = getColor(objects, "treeColors", "linkColor", settings.treeColors.linkColor);
+        settings.treeColors.nodeColorSeries = getValue(objects, "treeColors", "nodeColorSeries", settings.treeColors.nodeColorSeries);
+        settings.treeColors.nodeBgColor = getColor(objects, "treeColors", "nodeBgColor", settings.treeColors.nodeBgColor);
+
+        settings.legend.enableLegend = getValue(objects, "legend", "enableLegend", settings.legend.enableLegend);
+        settings.legend.legendPosition = getValue(objects, "legend", "legendPosition", settings.legend.legendPosition);
+        settings.legend.legendFontSize = getValue(objects, "legend", "legendFontSize", settings.legend.legendFontSize);
+        settings.legend.legendItemSpacing = getValue(objects, "legend", "legendItemSpacing", settings.legend.legendItemSpacing);
+
+        return settings;
     }
 
     public static getDefault(): VisualSettings {
@@ -110,6 +156,24 @@ export class VisualSettings {
                 return [];
         }
     }
+}
+
+function getValue(objects: any, objectName: string, propertyName: string, defaultValue: any): any {
+    try {
+        if (!objects || !objects[objectName]) return defaultValue;
+        const object = objects[objectName];
+        if (object[propertyName] === undefined || object[propertyName] === null) return defaultValue;
+        return object[propertyName];
+    } catch (e) {
+        return defaultValue;
+    }
+}
+
+function getColor(objects: any, objectName: string, propertyName: string, defaultValue: string): string {
+    const value = getValue(objects, objectName, propertyName, defaultValue);
+    if (typeof value === "string") return value;
+    if (value && value.solid && value.solid.color) return value.solid.color;
+    return defaultValue;
 }
 
 export class legend {

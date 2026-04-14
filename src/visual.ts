@@ -47,9 +47,25 @@ export class Visual {
         private idDiv: string;
         private oldOptions: VisualUpdateOptions;
         private errorDiv: HTMLElement;
+
+        private flattenNodes(root: any): any[] {
+            const out: any[] = [];
+            const walk = (n: any) => {
+                out.push(n);
+                if (n.children) n.children.forEach(walk);
+            };
+            walk(root);
+            return out;
+        }
+
+        private truncateLabel(text: string, maxLen: number): string {
+            if (!text) return "";
+            if (text.length <= maxLen) return text;
+            return text.substring(0, maxLen - 1) + "\u2026";
+        }
         
         private buildTreeFromCategories(options: VisualUpdateOptions): any {
-            const root = { name: "All", category: "Root", children: [] as any[] };
+            const root = { name: "All", category: "Root", children: [] as any[], depth: 0, count: 0 };
             const dv = options && options.dataViews && options.dataViews[0];
             if (!dv || !dv.categorical || !dv.categorical.categories || dv.categorical.categories.length === 0) {
                 return root;
@@ -60,6 +76,7 @@ export class Visual {
 
             for (let r = 0; r < rowCount; r++) {
                 let current = root;
+                current.count += 1;
                 for (let c = 0; c < categories.length; c++) {
                     const cat = categories[c];
                     const rawValue = cat.values ? cat.values[r] : null;
@@ -69,10 +86,13 @@ export class Visual {
                         child = {
                             name: label,
                             category: cat.source.displayName,
-                            children: []
+                            children: [],
+                            depth: c + 1,
+                            count: 0
                         };
                         current.children.push(child);
                     }
+                    child.count += 1;
                     current = child;
                 }
             }
@@ -80,22 +100,90 @@ export class Visual {
             return root;
         }
 
+        private renderFallbackLegend(svgRoot: d3.Selection<any>, categories: any[]): void {
+            if (!this.settings || !this.settings.legend || !this.settings.legend.enableLegend || !categories || categories.length === 0) {
+                return;
+            }
+            const fontSize = Math.max(8, this.settings.legend.legendFontSize || 12);
+            const spacing = Math.max(12, this.settings.legend.legendItemSpacing || 20);
+            const items = categories.map((c: any, i: number) => "Step " + (i + 1) + ": " + c.source.displayName);
+
+            const width = Number(svgRoot.attr("width")) || 600;
+            const height = Number(svgRoot.attr("height")) || 400;
+            const boxWidth = Math.max(180, Math.min(360, Math.max.apply(null, items.map(x => x.length)) * Math.max(6, fontSize * 0.55) + 26));
+            const boxHeight = items.length * spacing + 12;
+            const pos = this.settings.legend.legendPosition || "top-left";
+            let x = 10;
+            let y = 10;
+            if (pos === "top-right") x = width - boxWidth - 10;
+            if (pos === "bottom-left") y = height - boxHeight - 10;
+            if (pos === "bottom-right") { x = width - boxWidth - 10; y = height - boxHeight - 10; }
+
+            const g = svgRoot.append("g").attr("class", "fallback-legend");
+            g.append("rect")
+                .attr("x", x)
+                .attr("y", y)
+                .attr("width", boxWidth)
+                .attr("height", boxHeight)
+                .style("fill", "#ffffff")
+                .style("fill-opacity", 0.9)
+                .style("stroke", "#d0d0d0");
+
+            const rows = g.selectAll("g.legend-row")
+                .data(items)
+                .enter()
+                .append("g")
+                .attr("transform", (d: any, i: number) => "translate(" + (x + 10) + "," + (y + 8 + i * spacing) + ")");
+
+            rows.append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", 10)
+                .attr("height", 10)
+                .style("fill", this.settings.treeColors && this.settings.treeColors.arcBaseColor ? this.settings.treeColors.arcBaseColor : "#4C78A8");
+
+            rows.append("text")
+                .attr("x", 16)
+                .attr("y", 9)
+                .style("font-size", fontSize + "px")
+                .style("fill", "#333")
+                .text((d: any) => d);
+        }
+
         private renderFallbackTree(options: VisualUpdateOptions, height: number, width: number): void {
             const container = d3.select("#" + this.idDiv);
             container.select("svg").remove();
 
+            const dv = options && options.dataViews && options.dataViews[0];
+            const categories = dv && dv.categorical && dv.categorical.categories ? dv.categorical.categories : [];
             const data = this.buildTreeFromCategories(options);
-            const margin = { top: 20, right: 40, bottom: 20, left: 120 };
+            const margin = { top: 20, right: 80, bottom: 20, left: 220 };
             const w = Math.max(300, width - margin.left - margin.right);
             const h = Math.max(200, height - margin.top - margin.bottom);
+            const nodeTextSize = Math.max(8, this.settings && this.settings.treeLabels ? this.settings.treeLabels.nodeTextSize : 12);
+            const categoryLabelX = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelXpos : 0;
+            const categoryLabelY = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelYpos : 0;
+            const linkOpacity = this.settings && this.settings.treeOptions ? this.settings.treeOptions.linksOpacity : 0.5;
+            const linkSize = this.settings && this.settings.treeOptions ? this.settings.treeOptions.linksSize : 2;
+            const weightLinks = this.settings && this.settings.treeOptions ? this.settings.treeOptions.weightLinks : true;
+            const arcBaseColor = this.settings && this.settings.treeColors ? this.settings.treeColors.arcBaseColor : "lightsteelblue";
+            const nodeBgColor = this.settings && this.settings.treeColors ? this.settings.treeColors.nodeBgColor : "#fff";
+            const linkColor = this.settings && this.settings.treeColors ? this.settings.treeColors.linkColor : "#b5b5b5";
+            const nodeColorSeries = this.settings && this.settings.treeColors ? this.settings.treeColors.nodeColorSeries : true;
+            const linkColorSeries = this.settings && this.settings.treeColors ? this.settings.treeColors.linkColorSeries : true;
+            const maxCount = Math.max(1, d3.max(this.flattenNodes(data), function(n: any) { return n.count || 1; }) as any);
 
             const tree = d3.layout.tree().size([h, w]);
             const diagonal = d3.svg.diagonal().projection(function(d: any) { return [d.y, d.x]; });
 
-            const svg = container
+            const svgRoot = container
                 .append("svg")
                 .attr("width", w + margin.left + margin.right)
-                .attr("height", h + margin.top + margin.bottom)
+                .attr("height", h + margin.top + margin.bottom);
+
+            this.renderFallbackLegend(svgRoot, categories);
+
+            const svg = svgRoot
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -108,7 +196,15 @@ export class Visual {
                 .append("path")
                 .attr("class", "link")
                 .attr("d", diagonal)
-                .style("stroke", "#b5b5b5")
+                .style("stroke", function(d: any) {
+                    if (!linkColorSeries || !d.target || !d.target.name) return linkColor;
+                    return d.target.__seriesColor || linkColor;
+                })
+                .style("stroke-width", function(d: any) {
+                    if (!weightLinks) return Math.max(1.5, linkSize / 3);
+                    return Math.max(1.5, (d.target.count / maxCount) * Math.max(2, linkSize));
+                })
+                .style("stroke-opacity", Math.max(0, Math.min(1, linkOpacity)))
                 .style("fill", "none");
 
             const node = svg.selectAll("g.node")
@@ -118,19 +214,33 @@ export class Visual {
                 .attr("class", "node")
                 .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
 
+            node.each((d: any) => {
+                if (!d.__seriesColor) {
+                    d.__seriesColor = this.host.colorPalette.getColor((d.category || "") + ":" + (d.name || "")).value;
+                }
+            });
+
             node.append("circle")
-                .attr("r", 6)
-                .style("fill", "#fff")
-                .style("stroke", "steelblue");
+                .attr("r", function(d: any) {
+                    if (!weightLinks) return 6;
+                    return Math.max(4, (d.count / maxCount) * Math.max(6, linkSize * 0.6));
+                })
+                .style("fill", (d: any) => {
+                    if (!nodeColorSeries || !d.name || d.category === "Root") return nodeBgColor;
+                    return this.host.colorPalette.getColor(d.category + ":" + d.name).value;
+                })
+                .style("stroke", arcBaseColor);
 
             node.append("text")
-                .attr("dx", function(d: any) { return d.children && d.children.length ? -10 : 10; })
+                .attr("dx", function(d: any) { return d.children && d.children.length ? -12 : 12; })
+                .attr("x", categoryLabelX)
+                .attr("y", categoryLabelY)
                 .attr("dy", ".35em")
                 .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
-                .style("font-size", "12px")
-                .text(function(d: any) {
-                    if (!d.category || d.category === "Root") return d.name;
-                    return d.category + ": " + d.name;
+                .style("font-size", nodeTextSize + "px")
+                .text((d: any) => {
+                    if (!d.category || d.category === "Root") return this.truncateLabel(d.name, 45);
+                    return this.truncateLabel(d.category + ": " + d.name, 45);
                 });
         }
 
