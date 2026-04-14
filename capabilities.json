@@ -226,6 +226,52 @@
 
             }
         }
+        ,"legend": {
+            "displayName": "Legend",
+            "properties": {
+                "enableLegend": {
+                    "displayName": "Enable Legend",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "legendPosition": {
+                    "displayName": "Position",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "displayName": "Top Left",
+                                "value": "top-left"
+                            },
+                            {
+                                "displayName": "Top Right",
+                                "value": "top-right"
+                            },
+                            {
+                                "displayName": "Bottom Left",
+                                "value": "bottom-left"
+                            },
+                            {
+                                "displayName": "Bottom Right",
+                                "value": "bottom-right"
+                            }
+                        ]
+                    }
+                },
+                "legendFontSize": {
+                    "displayName": "Font Size",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "legendItemSpacing": {
+                    "displayName": "Item Spacing",
+                    "type": {
+                        "numeric": true
+                    }
+                }
+            }
+        }
         ,"treeColors":{
             "displayName":"Tree Colors"
             , "properties":{
