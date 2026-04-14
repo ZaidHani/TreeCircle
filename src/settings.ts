@@ -1,3 +1,4 @@
+/// <reference path="./powerbi-ambient.d.ts" />
 /*
  *  Power BI Visualizations
  *
@@ -24,83 +25,78 @@
  *  THE SOFTWARE.
  */
 
-module powerbi.extensibility.visual {
-    "use strict";
-    import DataViewObjectsParser = powerbi.extensibility.utils.dataview.DataViewObjectsParser;
+export class VisualSettings {
+    public treeOptions: treeOptions = new treeOptions();
+    public treeLabels: treeLabels = new treeLabels();
+    public treeColors: treeColors = new treeColors();
 
-    export class VisualSettings extends DataViewObjectsParser {
-      public treeOptions: treeOptions = new treeOptions();  
-      public treeLabels: treeLabels = new treeLabels();    
-      public treeColors: treeColors = new treeColors();
-      
+    public static parse(dataView: any): VisualSettings {
+        return VisualSettings.getDefault();
     }
 
-    export class treeLabels {
-      public allMemberName: string="All";
-      public nodeTextSize: number=15;
-      public magicLabels: boolean=false;
-      public autoScaleValues: boolean=true;
-      public valueAsPercent: boolean=false;
-      public numberDecimals: number=2;
-      public categoryLabelXpos: number=-30;
-      public categoryLabelYpos: number=0;
-      public valueLabelXpos: number=70;
-      public valueLabelYpos: number=0;
-      public backgroundLabels: boolean=true;
+    public static getDefault(): VisualSettings {
+        return new VisualSettings();
     }
 
-    export class treeColors {
-      public arcBaseColor: string = "lightsteelblue";
-      public arcCumplimientoOK: string = "green";
-      public arcCumplimientoKO: string = "red";
-      public linkColor: string = "lightgray";
-      public linkColorSeries:boolean = true;
-      public nodeColorSeries:boolean = true;
-      public nodeBgColor: string = "white";
+    public static enumerateObjectInstances(settings: VisualSettings, options: any): any {
+        return [];
     }
+}
 
-    export enum treeStileOptions {
-      horizontal = "horizontal" as any
-      , vertical = vertical as any
-    }
+export class treeLabels {
+    public allMemberName: string = "All";
+    public nodeTextSize: number = 15;
+    public magicLabels: boolean = false;
+    public autoScaleValues: boolean = true;
+    public valueAsPercent: boolean = false;
+    public numberDecimals: number = 2;
+    public categoryLabelXpos: number = -30;
+    public categoryLabelYpos: number = 0;
+    public valueLabelXpos: number = 70;
+    public valueLabelYpos: number = 0;
+    public backgroundLabels: boolean = true;
+}
 
-    export enum initialModeOptions {
-      expanded = "expanded" as any
-      , collapsed = "collapsed" as any
-      , expandrednodes = "expandrednodes" as any
-      , expandbestnode = "expandbestnode" as any
-      , expandlownode = "expandlownode" as any
-    }
-    
-    export class treeOptions {
-      public treeStyle : treeStileOptions = treeStileOptions.horizontal;
-      public filterMode: boolean = false;
-      public initialMode: initialModeOptions = initialModeOptions.expanded;
-      
-      public weightLinks: boolean = true;   
-      public linksSize: number = 20;
-      public linksOpacity: number = 0.5;
-      public nodesTooltips: boolean=true;
-      public expandMode: boolean=false;
-      
-      //public arcRadius: number=15;
-      public translationsDuration: number=750;
-      //public leftMarginFirstNode:number=60;
-      //public rightMarginFirstNode:number=100;
+export class treeColors {
+    public arcBaseColor: string = "lightsteelblue";
+    public arcCumplimientoOK: string = "green";
+    public arcCumplimientoKO: string = "red";
+    public linkColor: string = "lightgray";
+    public linkColorSeries: boolean = true;
+    public nodeColorSeries: boolean = true;
+    public nodeBgColor: string = "white";
+}
 
-      public leftMarginFirstNode:number=60;
-      public rightMarginFirstNode:number=80;
-      public topMarginFirstNode:number=20;
-      public bottomMarginFirstNode:number=60;
-      /*
-      public leftMarginFirstNode:number=0;
-      public rightMarginFirstNode:number=0;
-      public topMarginFirstNode:number=0;
-      public bottomMarginFirstNode:number=0;
-      */
+export enum treeStileOptions {
+    horizontal = "horizontal" as any,
+    vertical = "vertical" as any
+}
 
-      public progressPie: boolean = true;
-      
-    }
+export enum initialModeOptions {
+    expanded = "expanded" as any,
+    collapsed = "collapsed" as any,
+    expandrednodes = "expandrednodes" as any,
+    expandbestnode = "expandbestnode" as any,
+    expandlownode = "expandlownode" as any
+}
 
+export class treeOptions {
+    public treeStyle: treeStileOptions = treeStileOptions.horizontal;
+    public filterMode: boolean = false;
+    public initialMode: initialModeOptions = initialModeOptions.expanded;
+
+    public weightLinks: boolean = true;
+    public linksSize: number = 20;
+    public linksOpacity: number = 0.5;
+    public nodesTooltips: boolean = true;
+    public expandMode: boolean = false;
+
+    public translationsDuration: number = 750;
+
+    public leftMarginFirstNode: number = 60;
+    public rightMarginFirstNode: number = 80;
+    public topMarginFirstNode: number = 20;
+    public bottomMarginFirstNode: number = 60;
+
+    public progressPie: boolean = true;
 }

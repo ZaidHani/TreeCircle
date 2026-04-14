@@ -1,5 +1,8 @@
-module powerbi.extensibility.visual {
-    /**
+type DataViewObjects = { [name: string]: any };
+type DataViewCategoryColumn = { objects?: DataViewObject[] };
+type DataViewObject = { [propertyName: string]: any };
+
+/**
      * Gets property value for a particular object.
      *
      * @function
@@ -48,4 +51,3 @@ module powerbi.extensibility.visual {
         }
         return defaultValue;
     }
-}

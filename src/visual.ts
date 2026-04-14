@@ -23,34 +23,27 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+/// <reference path="./powerbi-ambient.d.ts" />
+import * as d3 from "d3";
+import { VisualSettings } from "./settings";
 
-module powerbi.extensibility.visual {
-    "use strict";
-    import tooltip = powerbi.extensibility.utils.tooltip;
-    
+declare function inicializarArbol(height: number, width: number, options: any, host: any, settings: any, idDiv: string): void;
 
-    interface ITooltipServiceWrapper {
-        addTooltip<T>(selection: d3.Selection<any>, getTooltipInfoDelegate: (args: TooltipEventArgs<T>) => VisualTooltipDataItem[], getDataPointIdentity?: (args: TooltipEventArgs<T>) => ISelectionId, reloadTooltipDataOnMouseMove?: boolean): void;
-        hide(): void;
-    }
+type VisualUpdateOptions = any;
+type VisualConstructorOptions = any;
+type EnumerateVisualObjectInstancesOptions = any;
+type VisualObjectInstance = any;
+type VisualObjectInstanceEnumerationObject = any;
+type DataView = any;
 
-    //import tooltip = powerbi.extensibility.utils.tooltip;
-    import TooltipEnabledDataPoint = powerbi.extensibility.utils.tooltip.TooltipEnabledDataPoint;
-    import TooltipEventArgs = powerbi.extensibility.utils.tooltip.TooltipEventArgs;
-
-    import IColorPalette = powerbi.extensibility.IColorPalette;
-    
-
-
-    export class Visual implements IVisual {
-        
-        private host: IVisualHost;
-        private tooltipServiceWrapper: ITooltipServiceWrapper; 
+export class Visual {
+        private host: any;
+        private tooltipServiceWrapper: any;
         private target: HTMLElement;
         private updateCount: number;
         private settings: VisualSettings;
         private textNode: Text;
-        private colorPalete: IColorPalette;
+        private colorPalete: any;
         private idDiv: string;
         private oldOptions: VisualUpdateOptions;
 
@@ -77,13 +70,24 @@ module powerbi.extensibility.visual {
             //wellcome page
             const wellcome_div : HTMLElement = document.createElement("div");
             wellcome_div.id="wellcome_div";
-            wellcome_div.innerHTML="<p style='font-size:25px'>PIE CHARTS TREE (1.0.3)</p>";
-            //wellcome_div.innerHTML+="<p>Sponsored by:</p>";
-            //wellcome_div.innerHTML+="<div style='position:relative;left:100px;height:100px;width:100px;background-color:black;color:white;'><div style='text-align:center;position:absolute;top:40px'><p style='height:100px;width:100px;margin:0;padding:0;'>WANTED</p></div></div>";
-            
-            wellcome_div.innerHTML+="<p style='font-weight: bolder;'>Put an attribute in the Categories field to start the tree...<br/></p>";
-            wellcome_div.innerHTML+="<p>Created by Aritz Francoy</p>";
-            wellcome_div.innerHTML+="<p>Contributors: Sergio Álvaro Panizo, Eduardo Valladolid, Mohammed Suhel</p>";
+
+            const title = document.createElement("p");
+            title.style.fontSize = "25px";
+            title.textContent = "PIE CHARTS TREE (1.0.3)";
+            wellcome_div.appendChild(title);
+
+            const hint = document.createElement("p");
+            hint.style.fontWeight = "bolder";
+            hint.textContent = "Put an attribute in the Categories field to start the tree...";
+            wellcome_div.appendChild(hint);
+
+            const author = document.createElement("p");
+            author.textContent = "Created by Aritz Francoy";
+            wellcome_div.appendChild(author);
+
+            const contributors = document.createElement("p");
+            contributors.textContent = "Contributors: Sergio Alvaro Panizo, Eduardo Valladolid, Mohammed Suhel";
+            wellcome_div.appendChild(contributors);
             this.target.appendChild(wellcome_div);
                 
         }
@@ -150,4 +154,3 @@ module powerbi.extensibility.visual {
             return VisualSettings.enumerateObjectInstances(vSettings,options);
         }
     }
-}

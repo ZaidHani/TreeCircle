@@ -1,6 +1,11 @@
-module powerbi.extensibility.visual {
+/// <reference path="./powerbi-ambient.d.ts" />
+import * as d3 from "d3";
 
-    export interface TooltipEventArgs<TData> {
+type ISelectionId = any;
+type ITooltipService = any;
+type VisualTooltipDataItem = any;
+
+export interface TooltipEventArgs<TData> {
         data: TData;
         coordinates: number[];
         elementCoordinates: number[];
@@ -24,7 +29,7 @@ module powerbi.extensibility.visual {
     }
 
     class TooltipServiceWrapper implements ITooltipServiceWrapper {
-        private handleTouchTimeoutId: number;
+private handleTouchTimeoutId: number | any;
         private visualHostTooltipService: ITooltipService;
         private rootElement: Element;
         private handleTouchDelay: number;
@@ -242,4 +247,3 @@ module powerbi.extensibility.visual {
             return eventName === "pointerdown" || eventName === "MSPointerDown";
         }
     }
-}

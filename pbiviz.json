@@ -4,12 +4,12 @@
     "displayName": "Pie Charts Tree",
     "guid": "testTooltip4696B540F3494FE5BA002362825DDE7D_DEBUG",
     "visualClassName": "Visual",
-    "version": "1.0.3",
+    "version": "1.0.3.0",
     "description": "Tree with circle graphs in each node.",
     "supportUrl": "http://www.aritzfb.com",
     "gitHubUrl": "https://github.com/aritzfb/TreeCircle"
   },
-  "apiVersion": "2.2.0",
+  "apiVersion": "4.7.0",
   "author": {
     "name": "Aritz Francoy Barreiro",
     "email": "aritzfb@hotmail.com"
@@ -17,11 +17,6 @@
   "assets": {
     "icon": "assets/icon.png"
   },
-  "externalJS": [
-    "node_modules/powerbi-visuals-utils-dataviewutils/lib/index.js",
-    "node_modules/d3/d3.min.js",
-    "node_modules/powerbi-visuals-utils-tooltiputils/lib/index.js"
-  ],
   "style": "style/visual.less",
   "capabilities": "capabilities.json",
   "dependencies": "dependencies.json",
