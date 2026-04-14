@@ -47,6 +47,8 @@ export class Visual {
         private idDiv: string;
         private oldOptions: VisualUpdateOptions;
         private errorDiv: HTMLElement;
+        private fallbackRoot: any;
+        private fallbackDataKey: string;
 
         private flattenNodes(root: any): any[] {
             const out: any[] = [];
@@ -98,6 +100,18 @@ export class Visual {
             }
 
             return root;
+        }
+
+        private getFallbackDataKey(options: VisualUpdateOptions): string {
+            const dv = options && options.dataViews && options.dataViews[0];
+            if (!dv || !dv.categorical || !dv.categorical.categories) return "no-data";
+            const categories = dv.categorical.categories;
+            const keyParts: string[] = [String(categories.length)];
+            categories.forEach((c: any) => {
+                keyParts.push(String(c.source && c.source.displayName ? c.source.displayName : ""));
+                keyParts.push(String(c.values ? c.values.length : 0));
+            });
+            return keyParts.join("|");
         }
 
         private renderFallbackLegend(svgRoot: d3.Selection<any>, categories: any[]): void {
@@ -156,10 +170,16 @@ export class Visual {
 
             const dv = options && options.dataViews && options.dataViews[0];
             const categories = dv && dv.categorical && dv.categorical.categories ? dv.categorical.categories : [];
-            const data = this.buildTreeFromCategories(options);
+            const dataKey = this.getFallbackDataKey(options);
+            if (!this.fallbackRoot || this.fallbackDataKey !== dataKey) {
+                this.fallbackRoot = this.buildTreeFromCategories(options);
+                this.fallbackDataKey = dataKey;
+            }
+            const data = this.fallbackRoot;
             const margin = { top: 20, right: 80, bottom: 20, left: 220 };
             const w = Math.max(300, width - margin.left - margin.right);
             const h = Math.max(200, height - margin.top - margin.bottom);
+            const extraLabelSpace = 420;
             const nodeTextSize = Math.max(8, this.settings && this.settings.treeLabels ? this.settings.treeLabels.nodeTextSize : 12);
             const categoryLabelX = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelXpos : 0;
             const categoryLabelY = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelYpos : 0;
@@ -178,7 +198,7 @@ export class Visual {
 
             const svgRoot = container
                 .append("svg")
-                .attr("width", w + margin.left + margin.right)
+                .attr("width", w + margin.left + margin.right + extraLabelSpace)
                 .attr("height", h + margin.top + margin.bottom);
 
             this.renderFallbackLegend(svgRoot, categories);
@@ -187,61 +207,145 @@ export class Visual {
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            const nodes = tree.nodes(data);
-            const links = tree.links(nodes);
+            let i = 0;
+            data.x0 = h / 2;
+            data.y0 = 0;
 
-            svg.selectAll("path.link")
-                .data(links)
-                .enter()
-                .append("path")
-                .attr("class", "link")
-                .attr("d", diagonal)
-                .style("stroke", function(d: any) {
-                    if (!linkColorSeries || !d.target || !d.target.name) return linkColor;
-                    return d.target.__seriesColor || linkColor;
-                })
-                .style("stroke-width", function(d: any) {
-                    if (!weightLinks) return Math.max(1.5, linkSize / 3);
-                    return Math.max(1.5, (d.target.count / maxCount) * Math.max(2, linkSize));
-                })
-                .style("stroke-opacity", Math.max(0, Math.min(1, linkOpacity)))
-                .style("fill", "none");
+            const hideTooltip = () => {
+                try {
+                    this.host.tooltipService.hostServices.visualHostTooltipService.hide({
+                        isTouchEvent: false,
+                        immediately: true
+                    });
+                } catch (e) {}
+            };
 
-            const node = svg.selectAll("g.node")
-                .data(nodes)
-                .enter()
-                .append("g")
-                .attr("class", "node")
-                .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
+            const showTooltip = (d: any) => {
+                try {
+                    const evt: any = (d3 as any).event || {};
+                    const items = [{
+                        displayName: d.category || "Category",
+                        value: d.name || "",
+                        color: d.__seriesColor || arcBaseColor
+                    }];
+                    this.host.tooltipService.hostServices.visualHostTooltipService.show({
+                        coordinates: [evt.clientX || 0, evt.clientY || 0],
+                        isTouchEvent: false,
+                        dataItems: items,
+                        identities: []
+                    });
+                } catch (e) {}
+            };
 
-            node.each((d: any) => {
-                if (!d.__seriesColor) {
-                    d.__seriesColor = this.host.colorPalette.getColor((d.category || "") + ":" + (d.name || "")).value;
+            const click = (d: any) => {
+                if (d.children && d.children.length) {
+                    d._children = d.children;
+                    d.children = [];
+                } else if (d._children && d._children.length) {
+                    d.children = d._children;
+                    d._children = [];
                 }
-            });
+                update(d);
+            };
 
-            node.append("circle")
-                .attr("r", function(d: any) {
-                    if (!weightLinks) return 6;
-                    return Math.max(4, (d.count / maxCount) * Math.max(6, linkSize * 0.6));
-                })
-                .style("fill", (d: any) => {
-                    if (!nodeColorSeries || !d.name || d.category === "Root") return nodeBgColor;
-                    return this.host.colorPalette.getColor(d.category + ":" + d.name).value;
-                })
-                .style("stroke", arcBaseColor);
+            const update = (source: any) => {
+                const nodes = tree.nodes(data).reverse();
+                const links = tree.links(nodes);
 
-            node.append("text")
-                .attr("dx", function(d: any) { return d.children && d.children.length ? -12 : 12; })
-                .attr("x", categoryLabelX)
-                .attr("y", categoryLabelY)
-                .attr("dy", ".35em")
-                .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
-                .style("font-size", nodeTextSize + "px")
-                .text((d: any) => {
-                    if (!d.category || d.category === "Root") return this.truncateLabel(d.name, 45);
-                    return this.truncateLabel(d.category + ": " + d.name, 45);
+                const maxDepth = Math.max(1, d3.max(nodes, function(n: any) { return n.depth || 0; }) as any);
+                const perDepth = Math.max(120, Math.floor((w - 40) / maxDepth));
+                nodes.forEach((n: any) => { n.y = n.depth * perDepth; });
+
+                const node = svg.selectAll("g.node")
+                    .data(nodes, function(d: any) { return d.id || (d.id = ++i); });
+
+                const nodeEnter = node.enter().append("g")
+                    .attr("class", "node")
+                    .attr("transform", function() { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+                    .on("click", click)
+                    .on("mouseover", showTooltip)
+                    .on("mouseout", hideTooltip);
+
+                nodeEnter.each((d: any) => {
+                    if (!d.__seriesColor) {
+                        d.__seriesColor = this.host.colorPalette.getColor((d.category || "") + ":" + (d.name || "")).value;
+                    }
                 });
+
+                nodeEnter.append("title")
+                    .text(function(d: any) { return (d.category && d.category !== "Root" ? d.category + ": " : "") + d.name; });
+
+                nodeEnter.append("circle")
+                    .attr("r", function(d: any) {
+                        if (!weightLinks) return 6;
+                        return Math.max(4, (d.count / maxCount) * Math.max(6, linkSize * 0.6));
+                    })
+                    .style("fill", (d: any) => {
+                        if (!nodeColorSeries || !d.name || d.category === "Root") return nodeBgColor;
+                        return d.__seriesColor;
+                    })
+                    .style("stroke", arcBaseColor);
+
+                nodeEnter.append("text")
+                    .attr("dx", function(d: any) { return d.children && d.children.length ? -12 : 12; })
+                    .attr("x", categoryLabelX)
+                    .attr("y", categoryLabelY)
+                    .attr("dy", ".35em")
+                    .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
+                    .style("font-size", nodeTextSize + "px")
+                    .text((d: any) => {
+                        if (!d.category || d.category === "Root") return this.truncateLabel(d.name, 75);
+                        return this.truncateLabel(d.category + ": " + d.name, 75);
+                    });
+
+                node.transition()
+                    .duration(250)
+                    .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
+
+                node.exit().transition()
+                    .duration(250)
+                    .attr("transform", function() { return "translate(" + source.y + "," + source.x + ")"; })
+                    .remove();
+
+                const link = svg.selectAll("path.link")
+                    .data(links, function(d: any) { return d.target.id; });
+
+                link.enter().insert("path", "g")
+                    .attr("class", "link")
+                    .attr("d", function() {
+                        const o = {x: source.x0, y: source.y0};
+                        return diagonal({source: o, target: o});
+                    })
+                    .style("stroke", function(d: any) {
+                        if (!linkColorSeries || !d.target || !d.target.name) return linkColor;
+                        return d.target.__seriesColor || linkColor;
+                    })
+                    .style("stroke-width", function(d: any) {
+                        if (!weightLinks) return Math.max(1.5, linkSize / 3);
+                        return Math.max(1.5, (d.target.count / maxCount) * Math.max(2, linkSize));
+                    })
+                    .style("stroke-opacity", Math.max(0, Math.min(1, linkOpacity)))
+                    .style("fill", "none");
+
+                link.transition()
+                    .duration(250)
+                    .attr("d", diagonal);
+
+                link.exit().transition()
+                    .duration(250)
+                    .attr("d", function() {
+                        const o = {x: source.x, y: source.y};
+                        return diagonal({source: o, target: o});
+                    })
+                    .remove();
+
+                nodes.forEach(function(d: any) {
+                    d.x0 = d.x;
+                    d.y0 = d.y;
+                });
+            };
+
+            update(data);
         }
 
         
