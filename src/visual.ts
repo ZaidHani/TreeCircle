@@ -94,6 +94,9 @@ export class Visual {
         
         private isResizing :boolean = false;       
         public update(options: VisualUpdateOptions) {
+            if (!options || !options.dataViews || !options.dataViews[0] || !options.dataViews[0].metadata || !options.dataViews[0].metadata.columns) {
+                return;
+            }
             this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
             
             var div_height = this.target.offsetHeight, div_width = this.target.offsetWidth;
@@ -104,7 +107,6 @@ export class Visual {
             } 
             
             if(hasCategories){
-                var hasExternalFilter = options.dataViews[0].categorical.categories[0]==options.dataViews[0].categorical.categories[1];
                 if(this.isResizing && options.type==36) {
                     this.isResizing=false;
                     document.getElementById("wellcome_div").style.display="none";

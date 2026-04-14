@@ -29,6 +29,7 @@ export class VisualSettings {
     public treeOptions: treeOptions = new treeOptions();
     public treeLabels: treeLabels = new treeLabels();
     public treeColors: treeColors = new treeColors();
+    public legend: legend = new legend();
 
     public static parse(dataView: any): VisualSettings {
         return VisualSettings.getDefault();
@@ -39,8 +40,83 @@ export class VisualSettings {
     }
 
     public static enumerateObjectInstances(settings: VisualSettings, options: any): any {
-        return [];
+        const objectName = options && options.objectName ? options.objectName : "";
+        switch (objectName) {
+            case "treeOptions":
+                return [{
+                    objectName: "treeOptions",
+                    properties: {
+                        treeStyle: settings.treeOptions.treeStyle,
+                        filterMode: settings.treeOptions.filterMode,
+                        initialMode: settings.treeOptions.initialMode,
+                        weightLinks: settings.treeOptions.weightLinks,
+                        linksSize: settings.treeOptions.linksSize,
+                        linksOpacity: settings.treeOptions.linksOpacity,
+                        nodesTooltips: settings.treeOptions.nodesTooltips,
+                        expandMode: settings.treeOptions.expandMode,
+                        translationsDuration: settings.treeOptions.translationsDuration,
+                        leftMarginFirstNode: settings.treeOptions.leftMarginFirstNode,
+                        rightMarginFirstNode: settings.treeOptions.rightMarginFirstNode,
+                        topMarginFirstNode: settings.treeOptions.topMarginFirstNode,
+                        bottomMarginFirstNode: settings.treeOptions.bottomMarginFirstNode,
+                        progressPie: settings.treeOptions.progressPie
+                    },
+                    selector: null
+                }];
+            case "treeLabels":
+                return [{
+                    objectName: "treeLabels",
+                    properties: {
+                        allMemberName: settings.treeLabels.allMemberName,
+                        nodeTextSize: settings.treeLabels.nodeTextSize,
+                        magicLabels: settings.treeLabels.magicLabels,
+                        autoScaleValues: settings.treeLabels.autoScaleValues,
+                        valueAsPercent: settings.treeLabels.valueAsPercent,
+                        numberDecimals: settings.treeLabels.numberDecimals,
+                        categoryLabelXpos: settings.treeLabels.categoryLabelXpos,
+                        categoryLabelYpos: settings.treeLabels.categoryLabelYpos,
+                        valueLabelXpos: settings.treeLabels.valueLabelXpos,
+                        valueLabelYpos: settings.treeLabels.valueLabelYpos,
+                        backgroundLabels: settings.treeLabels.backgroundLabels
+                    },
+                    selector: null
+                }];
+            case "treeColors":
+                return [{
+                    objectName: "treeColors",
+                    properties: {
+                        arcBaseColor: { solid: { color: settings.treeColors.arcBaseColor } },
+                        arcCumplimientoOK: { solid: { color: settings.treeColors.arcCumplimientoOK } },
+                        arcCumplimientoKO: { solid: { color: settings.treeColors.arcCumplimientoKO } },
+                        linkColorSeries: settings.treeColors.linkColorSeries,
+                        linkColor: { solid: { color: settings.treeColors.linkColor } },
+                        nodeColorSeries: settings.treeColors.nodeColorSeries,
+                        nodeBgColor: { solid: { color: settings.treeColors.nodeBgColor } }
+                    },
+                    selector: null
+                }];
+            case "legend":
+                return [{
+                    objectName: "legend",
+                    properties: {
+                        enableLegend: settings.legend.enableLegend,
+                        legendPosition: settings.legend.legendPosition,
+                        legendFontSize: settings.legend.legendFontSize,
+                        legendItemSpacing: settings.legend.legendItemSpacing
+                    },
+                    selector: null
+                }];
+            default:
+                return [];
+        }
     }
+}
+
+export class legend {
+    public enableLegend: boolean = true;
+    public legendPosition: string = "top-left";
+    public legendFontSize: number = 12;
+    public legendItemSpacing: number = 20;
 }
 
 export class treeLabels {
