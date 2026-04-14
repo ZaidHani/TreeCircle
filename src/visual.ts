@@ -46,6 +46,7 @@ export class Visual {
         private colorPalete: any;
         private idDiv: string;
         private oldOptions: VisualUpdateOptions;
+        private errorDiv: HTMLElement;
 
         
         
@@ -89,6 +90,14 @@ export class Visual {
             contributors.textContent = "Contributors: Sergio Alvaro Panizo, Eduardo Valladolid, Mohammed Suhel";
             wellcome_div.appendChild(contributors);
             this.target.appendChild(wellcome_div);
+
+            this.errorDiv = document.createElement("div");
+            this.errorDiv.id = "tree_error_div";
+            this.errorDiv.style.display = "none";
+            this.errorDiv.style.padding = "8px";
+            this.errorDiv.style.color = "#b00020";
+            this.errorDiv.style.fontSize = "12px";
+            this.target.appendChild(this.errorDiv);
                 
         }
         
@@ -107,31 +116,23 @@ export class Visual {
             } 
             
             if(hasCategories){
-                if(this.isResizing && options.type==36) {
-                    this.isResizing=false;
-                    document.getElementById("wellcome_div").style.display="none";
+                if (options.type == 4) this.isResizing = true;
+                if (options.type == 36) this.isResizing = false;
+
+                document.getElementById("wellcome_div").style.display="none";
+                if (this.errorDiv) this.errorDiv.style.display = "none";
+                if(div_height-20>0)div_height=div_height-20;
+                try {
+                    inicializarArbol(div_height,div_width,options,this.host,this.settings,this.idDiv);
+                } catch (e) {
                     if (d3.select("svg")){
                         d3.select("svg").remove();
                     }
-                    if(div_height-20>0)div_height=div_height-20;
-                    inicializarArbol(div_height,div_width,options,this.host,this.settings,this.idDiv);
+                    if (this.errorDiv) {
+                        this.errorDiv.textContent = "Render error: " + ((e && e.message) ? e.message : e);
+                        this.errorDiv.style.display = "block";
+                    }
                 }
-                else  
-                if((options.type != 36 /*&& options.type != 2*/) /*|| (options.type==2 && !hasExternalFilter)*/) {
-                    if (options.type == 4) this.isResizing=true;
-                    else {
-                        document.getElementById("wellcome_div").style.display="none";
-                        if (d3.select("svg")){
-                            //d3.select("svg").remove();
-                        }
-                        if(div_height-20>0)div_height=div_height-20;
-                        inicializarArbol(div_height,div_width,options,this.host,this.settings,this.idDiv);
-                        
-
-                            
-                    }   
-                }
-                
             } else {
                 if (d3.select("svg")){
                     d3.select("svg").remove();
