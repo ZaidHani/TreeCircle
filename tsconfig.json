@@ -11,9 +11,9 @@
     "skipLibCheck": true
   },
   "files": [
+    "src/visual.ts",
     "src/settings.ts",
     "src/objectEnumerationUtility.ts",
-    "src/tooltipServiceWrapper.ts",
-    "src/visual.ts"
+    "src/tooltipServiceWrapper.ts"
   ]
 }

@@ -1,4 +1,4 @@
-import { Visual } from "../../src/settings";
+import { Visual } from "../../src/visual";
 import powerbiVisualsApi from "powerbi-visuals-api";
 import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin;
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
