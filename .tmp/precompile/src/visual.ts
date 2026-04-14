@@ -42,6 +42,15 @@ module powerbi.extensibility.visual.testTooltip4696B540F3494FE5BA002362825DDE7D_
     
 
 
+    function callTreeInitializer(height: number, width: number, options: any, host: any, settings: any, idDiv: string): void {
+        const root: any = (typeof globalThis !== "undefined") ? globalThis : (typeof window !== "undefined" ? window : {});
+        const initFn: any = root["inicializarArbol"] || root["inicialzorArbol"];
+        if (typeof initFn !== "function") {
+            throw new Error("Tree initializer is not loaded");
+        }
+        initFn(height, width, options, host, settings, idDiv);
+    }
+
     export class Visual implements IVisual {
         
         private host: IVisualHost;
@@ -116,7 +125,7 @@ module powerbi.extensibility.visual.testTooltip4696B540F3494FE5BA002362825DDE7D_
                 if (this.errorDiv) this.errorDiv.style.display = "none";
                 if(div_height-20>0)div_height=div_height-20;
                 try {
-                    inicializarArbol(div_height,div_width,options,this.host,this.settings,this.idDiv);
+                    callTreeInitializer(div_height,div_width,options,this.host,this.settings,this.idDiv);
                 } catch (e) {
                     if (d3.select("svg")){
                         d3.select("svg").remove();
