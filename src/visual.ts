@@ -47,6 +47,92 @@ export class Visual {
         private idDiv: string;
         private oldOptions: VisualUpdateOptions;
         private errorDiv: HTMLElement;
+        
+        private buildTreeFromCategories(options: VisualUpdateOptions): any {
+            const root = { name: "All", category: "Root", children: [] as any[] };
+            const dv = options && options.dataViews && options.dataViews[0];
+            if (!dv || !dv.categorical || !dv.categorical.categories || dv.categorical.categories.length === 0) {
+                return root;
+            }
+
+            const categories = dv.categorical.categories;
+            const rowCount = categories[0] && categories[0].values ? categories[0].values.length : 0;
+
+            for (let r = 0; r < rowCount; r++) {
+                let current = root;
+                for (let c = 0; c < categories.length; c++) {
+                    const cat = categories[c];
+                    const rawValue = cat.values ? cat.values[r] : null;
+                    const label = (rawValue === null || rawValue === undefined) ? "(blank)" : String(rawValue);
+                    let child = current.children.find((x: any) => x.name === label && x.category === cat.source.displayName);
+                    if (!child) {
+                        child = {
+                            name: label,
+                            category: cat.source.displayName,
+                            children: []
+                        };
+                        current.children.push(child);
+                    }
+                    current = child;
+                }
+            }
+
+            return root;
+        }
+
+        private renderFallbackTree(options: VisualUpdateOptions, height: number, width: number): void {
+            const container = d3.select("#" + this.idDiv);
+            container.select("svg").remove();
+
+            const data = this.buildTreeFromCategories(options);
+            const margin = { top: 20, right: 40, bottom: 20, left: 120 };
+            const w = Math.max(300, width - margin.left - margin.right);
+            const h = Math.max(200, height - margin.top - margin.bottom);
+
+            const tree = d3.layout.tree().size([h, w]);
+            const diagonal = d3.svg.diagonal().projection(function(d: any) { return [d.y, d.x]; });
+
+            const svg = container
+                .append("svg")
+                .attr("width", w + margin.left + margin.right)
+                .attr("height", h + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            const nodes = tree.nodes(data);
+            const links = tree.links(nodes);
+
+            svg.selectAll("path.link")
+                .data(links)
+                .enter()
+                .append("path")
+                .attr("class", "link")
+                .attr("d", diagonal)
+                .style("stroke", "#b5b5b5")
+                .style("fill", "none");
+
+            const node = svg.selectAll("g.node")
+                .data(nodes)
+                .enter()
+                .append("g")
+                .attr("class", "node")
+                .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; });
+
+            node.append("circle")
+                .attr("r", 6)
+                .style("fill", "#fff")
+                .style("stroke", "steelblue");
+
+            node.append("text")
+                .attr("dx", function(d: any) { return d.children && d.children.length ? -10 : 10; })
+                .attr("dy", ".35em")
+                .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
+                .style("font-size", "12px")
+                .text(function(d: any) {
+                    if (!d.category || d.category === "Root") return d.name;
+                    return d.category + ": " + d.name;
+                });
+        }
 
         
         
@@ -128,8 +214,16 @@ export class Visual {
                     if (d3.select("svg")){
                         d3.select("svg").remove();
                     }
+                    try {
+                        this.renderFallbackTree(options, div_height, div_width);
+                    } catch (fallbackError) {
+                        if (this.errorDiv) {
+                            this.errorDiv.textContent = "Render error: " + ((fallbackError && (fallbackError as any).message) ? (fallbackError as any).message : fallbackError);
+                            this.errorDiv.style.display = "block";
+                        }
+                    }
                     if (this.errorDiv) {
-                        this.errorDiv.textContent = "Render error: " + ((e && e.message) ? e.message : e);
+                        this.errorDiv.textContent = "Primary renderer unavailable. Showing fallback tree.";
                         this.errorDiv.style.display = "block";
                     }
                 }
