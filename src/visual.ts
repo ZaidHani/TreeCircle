@@ -85,14 +85,17 @@ export class Visual {
                 let current = root;
                 current.count += 1;
                 const rowValueRaw = values[0] && values[0].values ? values[0].values[r] : null;
-                const rowValue = rowValueRaw !== null && rowValueRaw !== undefined && !Number.isNaN(Number(rowValueRaw))
-                    ? Number(rowValueRaw)
-                    : 0;
+                const rowValue = rowValueRaw === null || rowValueRaw === undefined || rowValueRaw === ""
+                    ? null
+                    : Number(rowValueRaw);
+                const rowHasValue = rowValue !== null && rowValue !== undefined && !Number.isNaN(rowValue);
                 if (!current.value) {
                     current.value = 0;
                 }
-                current.value += rowValue;
-                current.hasValue = current.hasValue || rowValueRaw !== null && rowValueRaw !== undefined;
+                if (rowHasValue) {
+                    current.value += rowValue;
+                }
+                current.hasValue = current.hasValue || rowHasValue;
 
                 for (let c = 0; c < categories.length; c++) {
                     const cat = categories[c];
@@ -116,8 +119,8 @@ export class Visual {
                         current.children.push(child);
                     }
                     child.count += 1;
-                    if (rowValue !== null && rowValue !== undefined && !Number.isNaN(Number(rowValue))) {
-                        child.value += Number(rowValue);
+                    if (rowHasValue) {
+                        child.value += rowValue;
                         child.hasValue = true;
                     }
                     current = child;
@@ -280,7 +283,7 @@ export class Visual {
                         value: d.name || "",
                         color: d.__seriesColor || arcBaseColor
                     }];
-                    if (d.value !== undefined && d.value !== null) {
+                    if (d.hasValue) {
                         items.push({
                             displayName: "Value",
                             value: String(d.value),
@@ -354,7 +357,7 @@ export class Visual {
                     .style("font-size", nodeTextSize + "px")
                     .text((d: any) => {
                         const label = this.truncateLabel(d.name, 24);
-                        if (d.value !== undefined && d.value !== null) {
+                        if (d.hasValue) {
                             return label + " (" + d.value + ")";
                         }
                         return label;
