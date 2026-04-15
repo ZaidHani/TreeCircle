@@ -319,8 +319,27 @@ export class Visual {
                 const links = tree.links(nodes);
 
                 const maxDepth = Math.max(1, d3.max(nodes, function(n: any) { return n.depth || 0; }) as any);
-                const perDepth = Math.max(40, Math.floor((w - 40) / maxDepth));
+                // Calculate maximum displayed label length at the deepest depth (includes value text)
+                let maxLabelLen = 0;
+                nodes.forEach((n: any) => {
+                    if (n.depth === maxDepth) {
+                        const label = this.truncateLabel(n.name, 24);
+                        const text = n.hasValue ? `${label} (${n.value})` : label;
+                        if (text && text.length > maxLabelLen) maxLabelLen = text.length;
+                    }
+                });
+                const labelPixelWidth = Math.floor(maxLabelLen * nodeTextSize * 0.65) + 16;
+                const availableW = w - 40 - labelPixelWidth;
+                const perDepth = Math.max(40, Math.floor((availableW > 0 ? availableW : (w - 40)) / maxDepth));
                 nodes.forEach((n: any) => { n.y = n.depth * perDepth; });
+
+                // Ensure svg viewBox is wide enough to accommodate deepest labels
+                try {
+                    const neededW = margin.left + margin.right + perDepth * maxDepth + labelPixelWidth;
+                    if (neededW > totalW) {
+                        svgRoot.attr("viewBox", "0 0 " + neededW + " " + totalH);
+                    }
+                } catch (e) {}
 
                 const node = svg.selectAll("g.node")
                     .data(nodes, function(d: any) { return d.id || (d.id = ++i); });
