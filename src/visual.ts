@@ -71,18 +71,29 @@ export class Visual {
         }
         
         private buildTreeFromCategories(options: VisualUpdateOptions): any {
-            const root = { name: "All", category: "Root", children: [] as any[], depth: 0, count: 0 };
+            const root: any = { name: "All", category: "Root", children: [] as any[], depth: 0, count: 0, value: 0, hasValue: false };
             const dv = options && options.dataViews && options.dataViews[0];
             if (!dv || !dv.categorical || !dv.categorical.categories || dv.categorical.categories.length === 0) {
                 return root;
             }
 
             const categories = dv.categorical.categories;
+            const values = dv.categorical.values || [];
             const rowCount = categories[0] && categories[0].values ? categories[0].values.length : 0;
 
             for (let r = 0; r < rowCount; r++) {
                 let current = root;
                 current.count += 1;
+                const rowValueRaw = values[0] && values[0].values ? values[0].values[r] : null;
+                const rowValue = rowValueRaw !== null && rowValueRaw !== undefined && !Number.isNaN(Number(rowValueRaw))
+                    ? Number(rowValueRaw)
+                    : 0;
+                if (!current.value) {
+                    current.value = 0;
+                }
+                current.value += rowValue;
+                current.hasValue = current.hasValue || rowValueRaw !== null && rowValueRaw !== undefined;
+
                 for (let c = 0; c < categories.length; c++) {
                     const cat = categories[c];
                     const rawValue = cat.values ? cat.values[r] : null;
@@ -98,11 +109,17 @@ export class Visual {
                             category: cat.source.displayName,
                             children: [],
                             depth: c + 1,
-                            count: 0
+                            count: 0,
+                            value: 0,
+                            hasValue: false
                         };
                         current.children.push(child);
                     }
                     child.count += 1;
+                    if (rowValue !== null && rowValue !== undefined && !Number.isNaN(Number(rowValue))) {
+                        child.value += Number(rowValue);
+                        child.hasValue = true;
+                    }
                     current = child;
                 }
             }
@@ -263,6 +280,13 @@ export class Visual {
                         value: d.name || "",
                         color: d.__seriesColor || arcBaseColor
                     }];
+                    if (d.value !== undefined && d.value !== null) {
+                        items.push({
+                            displayName: "Value",
+                            value: String(d.value),
+                            color: d.__seriesColor || arcBaseColor
+                        });
+                    }
                     this.host.tooltipService.hostServices.visualHostTooltipService.show({
                         coordinates: [evt.clientX || 0, evt.clientY || 0],
                         isTouchEvent: false,
@@ -329,7 +353,11 @@ export class Visual {
                     .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
                     .style("font-size", nodeTextSize + "px")
                     .text((d: any) => {
-                        return this.truncateLabel(d.name, 24);
+                        const label = this.truncateLabel(d.name, 24);
+                        if (d.value !== undefined && d.value !== null) {
+                            return label + " (" + d.value + ")";
+                        }
+                        return label;
                     });
 
                 node.transition()
