@@ -253,10 +253,14 @@ export class Visual {
             const tree = d3.layout.tree().size([h, w]);
             const diagonal = d3.svg.diagonal().projection(function(d: any) { return [d.y, d.x]; });
 
+            const totalW = Math.max(w + margin.left + margin.right, 300);
+            const totalH = Math.max(h + margin.top + margin.bottom, 200);
             const svgRoot = container
                 .append("svg")
-                .attr("width", w + margin.left + margin.right)
-                .attr("height", h + margin.top + margin.bottom);
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", "0 0 " + totalW + " " + totalH)
+                .attr("preserveAspectRatio", "xMinYMin meet");
 
             const svg = svgRoot
                 .append("g")
@@ -315,7 +319,7 @@ export class Visual {
                 const links = tree.links(nodes);
 
                 const maxDepth = Math.max(1, d3.max(nodes, function(n: any) { return n.depth || 0; }) as any);
-                const perDepth = Math.max(120, Math.floor((w - 40) / maxDepth));
+                const perDepth = Math.max(40, Math.floor((w - 40) / maxDepth));
                 nodes.forEach((n: any) => { n.y = n.depth * perDepth; });
 
                 const node = svg.selectAll("g.node")
