@@ -65,6 +65,10 @@ export class Visual {
             if (text.length <= maxLen) return text;
             return text.substring(0, maxLen - 1) + "\u2026";
         }
+
+        private isMissingStepValue(rawValue: any): boolean {
+            return rawValue === null || rawValue === undefined || (typeof rawValue === "string" && rawValue.trim() === "");
+        }
         
         private buildTreeFromCategories(options: VisualUpdateOptions): any {
             const root = { name: "All", category: "Root", children: [] as any[], depth: 0, count: 0 };
@@ -82,7 +86,11 @@ export class Visual {
                 for (let c = 0; c < categories.length; c++) {
                     const cat = categories[c];
                     const rawValue = cat.values ? cat.values[r] : null;
-                    const label = (rawValue === null || rawValue === undefined) ? "(blank)" : String(rawValue);
+                    // Skip empty/null step values and continue to following steps.
+                    if (this.isMissingStepValue(rawValue)) {
+                        continue;
+                    }
+                    const label = String(rawValue);
                     let child = current.children.find((x: any) => x.name === label && x.category === cat.source.displayName);
                     if (!child) {
                         child = {
@@ -128,7 +136,7 @@ export class Visual {
             const spacing = Math.max(12, this.settings.legend.legendItemSpacing || 20);
             const items = categories.map((c: any, i: number) => ({
                 category: c.source.displayName,
-                label: "Step " + (i + 1)
+                label: c.source.displayName
             }));
 
             const width = Number(svgRoot.attr("width")) || 600;
@@ -212,6 +220,7 @@ export class Visual {
             const nodeColorSeries = this.settings && this.settings.treeColors ? this.settings.treeColors.nodeColorSeries : true;
             const linkColorSeries = this.settings && this.settings.treeColors ? this.settings.treeColors.linkColorSeries : true;
             const maxCount = Math.max(1, d3.max(this.flattenNodes(data), function(n: any) { return n.count || 1; }) as any);
+            const animationDuration = Math.max(0, this.settings && this.settings.treeOptions ? this.settings.treeOptions.translationsDuration : 250);
             const categoryColors: { [key: string]: string } = {};
             categories.forEach((c: any) => {
                 const key = c.source.displayName;
@@ -324,14 +333,14 @@ export class Visual {
                     });
 
                 node.transition()
-                    .duration(250)
+                    .duration(animationDuration)
                     .attr("transform", function(d: any) { return "translate(" + d.y + "," + d.x + ")"; })
                     .style("opacity", function(d: any) {
                         return !activeCategory || d.category === activeCategory || d.category === "Root" ? 1 : 0.2;
                     });
 
                 node.exit().transition()
-                    .duration(250)
+                    .duration(animationDuration)
                     .attr("transform", function() { return "translate(" + source.y + "," + source.x + ")"; })
                     .remove();
 
@@ -356,14 +365,14 @@ export class Visual {
                     .style("fill", "none");
 
                 link.transition()
-                    .duration(250)
+                    .duration(animationDuration)
                     .attr("d", diagonal)
                     .style("opacity", function(d: any) {
                         return !activeCategory || d.target.category === activeCategory ? 1 : 0.12;
                     });
 
                 link.exit().transition()
-                    .duration(250)
+                    .duration(animationDuration)
                     .attr("d", function() {
                         const o = {x: source.x, y: source.y};
                         return diagonal({source: o, target: o});
@@ -468,14 +477,7 @@ export class Visual {
                     try {
                         this.renderFallbackTree(options, div_height, div_width);
                     } catch (fallbackError) {
-                        if (this.errorDiv) {
-                            this.errorDiv.textContent = "Render error: " + ((fallbackError && (fallbackError as any).message) ? (fallbackError as any).message : fallbackError);
-                            this.errorDiv.style.display = "block";
-                        }
-                    }
-                    if (this.errorDiv) {
-                        this.errorDiv.textContent = "Primary renderer unavailable. Showing fallback tree.";
-                        this.errorDiv.style.display = "block";
+                        // Keep UI clean: do not display technical errors in the visual.
                     }
                 }
             } else {
