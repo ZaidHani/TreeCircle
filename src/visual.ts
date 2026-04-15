@@ -225,7 +225,19 @@ export class Visual {
                 this.fallbackDataKey = dataKey;
             }
             const data = this.fallbackRoot;
-            const margin = { top: 20, right: 20, bottom: 20, left: 120 };
+            // Allow user-configurable margins via settings.treeOptions, with an optional drawing padding to reduce whitespace.
+            const tm = this.settings && this.settings.treeOptions ? this.settings.treeOptions : null;
+            const pad = (tm && typeof tm.drawingPadding === 'number') ? tm.drawingPadding : 0;
+            const leftDefault = (tm && typeof tm.leftMarginFirstNode === 'number') ? tm.leftMarginFirstNode : 120;
+            const rightDefault = (tm && typeof tm.rightMarginFirstNode === 'number') ? tm.rightMarginFirstNode : 20;
+            const topDefault = (tm && typeof tm.topMarginFirstNode === 'number') ? tm.topMarginFirstNode : 20;
+            const bottomDefault = (tm && typeof tm.bottomMarginFirstNode === 'number') ? tm.bottomMarginFirstNode : 20;
+            const margin = {
+                top: Math.max(0, topDefault - pad),
+                right: Math.max(0, rightDefault - pad),
+                bottom: Math.max(0, bottomDefault - pad),
+                left: Math.max(0, leftDefault - pad)
+            };
             const w = Math.max(300, width - margin.left - margin.right);
             const h = Math.max(200, height - margin.top - margin.bottom);
             const nodeTextSize = Math.max(8, this.settings && this.settings.treeLabels ? this.settings.treeLabels.nodeTextSize : 12);

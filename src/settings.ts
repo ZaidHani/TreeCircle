@@ -51,6 +51,7 @@ export class VisualSettings {
         settings.treeOptions.rightMarginFirstNode = getValue(objects, "treeOptions", "rightMarginFirstNode", settings.treeOptions.rightMarginFirstNode);
         settings.treeOptions.topMarginFirstNode = getValue(objects, "treeOptions", "topMarginFirstNode", settings.treeOptions.topMarginFirstNode);
         settings.treeOptions.bottomMarginFirstNode = getValue(objects, "treeOptions", "bottomMarginFirstNode", settings.treeOptions.bottomMarginFirstNode);
+        settings.treeOptions.drawingPadding = getValue(objects, "treeOptions", "drawingPadding", settings.treeOptions.drawingPadding);
         settings.treeOptions.progressPie = getValue(objects, "treeOptions", "progressPie", settings.treeOptions.progressPie);
 
         settings.treeLabels.allMemberName = getValue(objects, "treeLabels", "allMemberName", settings.treeLabels.allMemberName);
@@ -105,6 +106,7 @@ export class VisualSettings {
                         rightMarginFirstNode: settings.treeOptions.rightMarginFirstNode,
                         topMarginFirstNode: settings.treeOptions.topMarginFirstNode,
                         bottomMarginFirstNode: settings.treeOptions.bottomMarginFirstNode,
+                        drawingPadding: settings.treeOptions.drawingPadding,
                         progressPie: settings.treeOptions.progressPie
                     },
                     selector: null
@@ -237,6 +239,7 @@ export class treeOptions {
     public rightMarginFirstNode: number = 80;
     public topMarginFirstNode: number = 20;
     public bottomMarginFirstNode: number = 60;
+    public drawingPadding: number = 0;
 
     public progressPie: boolean = true;
 }

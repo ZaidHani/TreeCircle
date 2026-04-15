@@ -141,6 +141,12 @@
                         "numeric":true
                     }
                 }
+                , "drawingPadding" : {
+                    "displayName":"Drawing padding (px)",
+                    "type":{
+                        "numeric":true
+                    }
+                }
                 
                 , "progressPie":{
                     "displayName": "Progress Pie"
