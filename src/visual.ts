@@ -241,6 +241,8 @@ export class Visual {
             const w = Math.max(300, width - margin.left - margin.right);
             const h = Math.max(200, height - margin.top - margin.bottom);
             const nodeTextSize = Math.max(8, this.settings && this.settings.treeLabels ? this.settings.treeLabels.nodeTextSize : 12);
+            const labelColor = this.settings && this.settings.treeLabels ? this.settings.treeLabels.labelColor : '#333333';
+            const valueLabelColor = this.settings && this.settings.treeLabels ? this.settings.treeLabels.valueLabelColor : '#333333';
             const categoryLabelX = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelXpos : 0;
             const categoryLabelY = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelYpos : 0;
             const linkOpacity = this.settings && this.settings.treeOptions ? this.settings.treeOptions.linksOpacity : 0.5;
@@ -390,6 +392,7 @@ export class Visual {
                     .attr("dy", ".35em")
                     .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
                     .style("font-size", nodeTextSize + "px")
+                    .style("fill", labelColor)
                     .text((d: any) => {
                         const label = this.truncateLabel(d.name, 24);
                         if (d.hasValue) {

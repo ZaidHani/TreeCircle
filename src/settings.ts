@@ -64,6 +64,8 @@ export class VisualSettings {
         settings.treeLabels.categoryLabelYpos = getValue(objects, "treeLabels", "categoryLabelYpos", settings.treeLabels.categoryLabelYpos);
         settings.treeLabels.valueLabelXpos = getValue(objects, "treeLabels", "valueLabelXpos", settings.treeLabels.valueLabelXpos);
         settings.treeLabels.valueLabelYpos = getValue(objects, "treeLabels", "valueLabelYpos", settings.treeLabels.valueLabelYpos);
+        settings.treeLabels.labelColor = getColor(objects, "treeLabels", "labelColor", settings.treeLabels.labelColor);
+        settings.treeLabels.valueLabelColor = getColor(objects, "treeLabels", "valueLabelColor", settings.treeLabels.valueLabelColor);
         settings.treeLabels.backgroundLabels = getValue(objects, "treeLabels", "backgroundLabels", settings.treeLabels.backgroundLabels);
 
         settings.treeColors.arcBaseColor = getColor(objects, "treeColors", "arcBaseColor", settings.treeColors.arcBaseColor);
@@ -125,6 +127,8 @@ export class VisualSettings {
                         categoryLabelYpos: settings.treeLabels.categoryLabelYpos,
                         valueLabelXpos: settings.treeLabels.valueLabelXpos,
                         valueLabelYpos: settings.treeLabels.valueLabelYpos,
+                        labelColor: { solid: { color: settings.treeLabels.labelColor } },
+                        valueLabelColor: { solid: { color: settings.treeLabels.valueLabelColor } },
                         backgroundLabels: settings.treeLabels.backgroundLabels
                     },
                     selector: null
@@ -196,6 +200,8 @@ export class treeLabels {
     public categoryLabelYpos: number = 0;
     public valueLabelXpos: number = 70;
     public valueLabelYpos: number = 0;
+    public labelColor: string = "#333333";
+    public valueLabelColor: string = "#333333";
     public backgroundLabels: boolean = true;
 }
 

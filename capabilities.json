@@ -224,6 +224,26 @@
                         "numeric":true
                     }
                 }
+                , "labelColor":{
+                    "displayName":"Category Label Color"
+                    , "type":{
+                        "fill":{
+                            "solid":{
+                                "color":true
+                            }
+                        }
+                    }
+                }
+                , "valueLabelColor":{
+                    "displayName":"Value Label Color"
+                    , "type":{
+                        "fill":{
+                            "solid":{
+                                "color":true
+                            }
+                        }
+                    }
+                }
                 , "backgroundLabels":{
                     "displayName" : "Background labels"
                     , "type" : {
