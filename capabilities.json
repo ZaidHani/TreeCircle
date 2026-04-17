@@ -244,6 +244,22 @@
                         }
                     }
                 }
+                , "labelBackgroundColor":{
+                    "displayName":"Label Background Color"
+                    , "type":{
+                        "fill":{
+                            "solid":{
+                                "color":true
+                            }
+                        }
+                    }
+                }
+                , "labelBackgroundOpacity":{
+                    "displayName":"Label Background Opacity"
+                    , "type":{
+                        "numeric":true
+                    }
+                }
                 , "backgroundLabels":{
                     "displayName" : "Background labels"
                     , "type" : {

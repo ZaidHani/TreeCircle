@@ -66,6 +66,8 @@ export class VisualSettings {
         settings.treeLabels.valueLabelYpos = getValue(objects, "treeLabels", "valueLabelYpos", settings.treeLabels.valueLabelYpos);
         settings.treeLabels.labelColor = getColor(objects, "treeLabels", "labelColor", settings.treeLabels.labelColor);
         settings.treeLabels.valueLabelColor = getColor(objects, "treeLabels", "valueLabelColor", settings.treeLabels.valueLabelColor);
+        settings.treeLabels.labelBackgroundColor = getColor(objects, "treeLabels", "labelBackgroundColor", settings.treeLabels.labelBackgroundColor);
+        settings.treeLabels.labelBackgroundOpacity = getValue(objects, "treeLabels", "labelBackgroundOpacity", settings.treeLabels.labelBackgroundOpacity);
         settings.treeLabels.backgroundLabels = getValue(objects, "treeLabels", "backgroundLabels", settings.treeLabels.backgroundLabels);
 
         settings.treeColors.arcBaseColor = getColor(objects, "treeColors", "arcBaseColor", settings.treeColors.arcBaseColor);
@@ -129,6 +131,8 @@ export class VisualSettings {
                         valueLabelYpos: settings.treeLabels.valueLabelYpos,
                         labelColor: { solid: { color: settings.treeLabels.labelColor } },
                         valueLabelColor: { solid: { color: settings.treeLabels.valueLabelColor } },
+                        labelBackgroundColor: { solid: { color: settings.treeLabels.labelBackgroundColor } },
+                        labelBackgroundOpacity: settings.treeLabels.labelBackgroundOpacity,
                         backgroundLabels: settings.treeLabels.backgroundLabels
                     },
                     selector: null
@@ -202,6 +206,8 @@ export class treeLabels {
     public valueLabelYpos: number = 0;
     public labelColor: string = "#333333";
     public valueLabelColor: string = "#333333";
+    public labelBackgroundColor: string = "#ffffff";
+    public labelBackgroundOpacity: number = 0.5;
     public backgroundLabels: boolean = true;
 }
 

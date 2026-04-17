@@ -245,6 +245,11 @@ export class Visual {
             const valueLabelColor = this.settings && this.settings.treeLabels ? this.settings.treeLabels.valueLabelColor : '#333333';
             const categoryLabelX = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelXpos : 0;
             const categoryLabelY = this.settings && this.settings.treeLabels ? this.settings.treeLabels.categoryLabelYpos : 0;
+            const valueLabelX = this.settings && this.settings.treeLabels ? this.settings.treeLabels.valueLabelXpos : 0;
+            const valueLabelY = this.settings && this.settings.treeLabels ? this.settings.treeLabels.valueLabelYpos : 0;
+            const backgroundLabels = this.settings && this.settings.treeLabels ? this.settings.treeLabels.backgroundLabels : true;
+            const labelBackgroundColor = this.settings && this.settings.treeLabels ? this.settings.treeLabels.labelBackgroundColor : '#ffffff';
+            const labelBackgroundOpacity = this.settings && this.settings.treeLabels ? this.settings.treeLabels.labelBackgroundOpacity : 0.5;
             const linkOpacity = this.settings && this.settings.treeOptions ? this.settings.treeOptions.linksOpacity : 0.5;
             const linkSize = this.settings && this.settings.treeOptions ? this.settings.treeOptions.linksSize : 2;
             const weightLinks = this.settings && this.settings.treeOptions ? this.settings.treeOptions.weightLinks : true;
@@ -395,11 +400,37 @@ export class Visual {
                     .style("fill", labelColor)
                     .text((d: any) => {
                         const label = this.truncateLabel(d.name, 24);
-                        if (d.hasValue) {
-                            return label + " (" + d.value + ")";
-                        }
                         return label;
                     });
+
+                nodeEnter.each(function(d: any) {
+                    const el = d3.select(this);
+                    const valueText = d.hasValue ? String(d.value) : "";
+                    if (valueText) {
+                        if (backgroundLabels) {
+                            el.append("rect")
+                                .attr("fill", labelBackgroundColor)
+                                .attr("fill-opacity", labelBackgroundOpacity)
+                                .attr("stroke", "none")
+                                .attr("x", function() {
+                                    const retorno = -valueText.length * nodeTextSize * 0.65 + valueLabelX + 10;
+                                    return retorno;
+                                })
+                                .attr("y", valueLabelY - nodeTextSize / 2)
+                                .attr("height", nodeTextSize)
+                                .attr("width", Math.max(0, valueText.length * nodeTextSize * 0.65 - 8));
+                        }
+                        el.append("text")
+                            .attr("x", valueLabelX)
+                            .attr("y", valueLabelY)
+                            .attr("dy", "0.35em")
+                            .attr("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
+                            .text(valueText)
+                            .style("fill", valueLabelColor)
+                            .style("fill-opacity", 1)
+                            .style("font-size", nodeTextSize + "px");
+                    }
+                });
 
                 node.transition()
                     .duration(animationDuration)
