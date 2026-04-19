@@ -71,7 +71,10 @@ export class Visual {
         }
         
         private buildTreeFromCategories(options: VisualUpdateOptions): any {
-            const root: any = { name: "All", category: "Root", children: [] as any[], depth: 0, count: 0, value: 0, hasValue: false };
+            const rootName = this.settings && this.settings.treeLabels && this.settings.treeLabels.allMemberName
+                ? this.settings.treeLabels.allMemberName
+                : "All";
+            const root: any = { name: rootName, category: "Root", children: [] as any[], depth: 0, count: 0, value: 0, hasValue: false };
             const dv = options && options.dataViews && options.dataViews[0];
             if (!dv || !dv.categorical || !dv.categorical.categories || dv.categorical.categories.length === 0) {
                 return root;
@@ -88,7 +91,7 @@ export class Visual {
                 const rowValue = rowValueRaw === null || rowValueRaw === undefined || rowValueRaw === ""
                     ? null
                     : Number(rowValueRaw);
-                const rowHasValue = rowValue !== null && rowValue !== undefined && !Number.isNaN(rowValue);
+                const rowHasValue = rowValue !== null && rowValue !== undefined && !isNaN(rowValue);
                 if (!current.value) {
                     current.value = 0;
                 }
