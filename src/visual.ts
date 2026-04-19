@@ -424,7 +424,7 @@ export class Visual {
                                 .attr("width", Math.max(0, valueText.length * nodeTextSize * 0.65 - 8));
                         }
                         el.append("text")
-                            .attr("x", function(d: any) { return d.category === "Root" ? valueLabelX - 10 : valueLabelX; })
+                            .attr("x", function(d: any) { return d.category === "Root" ? valueLabelX - 20 : valueLabelX; })
                             .attr("y", valueLabelY)
                             .attr("dy", "0.35em")
                             .attr("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
