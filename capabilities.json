@@ -1,4 +1,5 @@
 {
+    "privileges": [],
     "dataRoles": [
         {
             "displayName": "Categories",
@@ -140,6 +141,12 @@
                         "numeric":true
                     }
                 }
+                , "drawingPadding" : {
+                    "displayName":"Drawing padding (px)",
+                    "type":{
+                        "numeric":true
+                    }
+                }
                 
                 , "progressPie":{
                     "displayName": "Progress Pie"
@@ -213,6 +220,42 @@
                 }
                 , "valueLabelYpos":{
                     "displayName":"Relative Y Position Value Label"
+                    , "type":{
+                        "numeric":true
+                    }
+                }
+                , "labelColor":{
+                    "displayName":"Category Label Color"
+                    , "type":{
+                        "fill":{
+                            "solid":{
+                                "color":true
+                            }
+                        }
+                    }
+                }
+                , "valueLabelColor":{
+                    "displayName":"Value Label Color"
+                    , "type":{
+                        "fill":{
+                            "solid":{
+                                "color":true
+                            }
+                        }
+                    }
+                }
+                , "labelBackgroundColor":{
+                    "displayName":"Label Background Color"
+                    , "type":{
+                        "fill":{
+                            "solid":{
+                                "color":true
+                            }
+                        }
+                    }
+                }
+                , "labelBackgroundOpacity":{
+                    "displayName":"Label Background Opacity"
                     , "type":{
                         "numeric":true
                     }

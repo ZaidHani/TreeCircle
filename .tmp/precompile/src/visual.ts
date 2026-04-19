@@ -42,6 +42,15 @@ module powerbi.extensibility.visual.testTooltip4696B540F3494FE5BA002362825DDE7D_
     
 
 
+    function callTreeInitializer(height: number, width: number, options: any, host: any, settings: any, idDiv: string): void {
+        const root: any = (typeof globalThis !== "undefined") ? globalThis : (typeof window !== "undefined" ? window : {});
+        const initFn: any = root["inicializarArbol"] || root["inicialzorArbol"];
+        if (typeof initFn !== "function") {
+            throw new Error("Tree initializer is not loaded");
+        }
+        initFn(height, width, options, host, settings, idDiv);
+    }
+
     export class Visual implements IVisual {
         
         private host: IVisualHost;
@@ -53,6 +62,7 @@ module powerbi.extensibility.visual.testTooltip4696B540F3494FE5BA002362825DDE7D_
         private colorPalete: IColorPalette;
         private idDiv: string;
         private oldOptions: VisualUpdateOptions;
+        private errorDiv: HTMLElement;
 
         
         
@@ -78,18 +88,26 @@ module powerbi.extensibility.visual.testTooltip4696B540F3494FE5BA002362825DDE7D_
             const wellcome_div : HTMLElement = document.createElement("div");
             wellcome_div.id="wellcome_div";
             wellcome_div.innerHTML="<p style='font-size:25px'>PIE CHARTS TREE (1.0.3)</p>";
-            //wellcome_div.innerHTML+="<p>Sponsored by:</p>";
-            //wellcome_div.innerHTML+="<div style='position:relative;left:100px;height:100px;width:100px;background-color:black;color:white;'><div style='text-align:center;position:absolute;top:40px'><p style='height:100px;width:100px;margin:0;padding:0;'>WANTED</p></div></div>";
-            
             wellcome_div.innerHTML+="<p style='font-weight: bolder;'>Put an attribute in the Categories field to start the tree...<br/></p>";
             wellcome_div.innerHTML+="<p>Created by Aritz Francoy</p>";
-            wellcome_div.innerHTML+="<p>Contributors: Sergio Álvaro Panizo, Eduardo Valladolid, Mohammed Suhel</p>";
+            wellcome_div.innerHTML+="<p>Contributors: Sergio Alvaro Panizo, Eduardo Valladolid, Mohammed Suhel</p>";
             this.target.appendChild(wellcome_div);
+
+            this.errorDiv = document.createElement("div");
+            this.errorDiv.id = "tree_error_div";
+            this.errorDiv.style.display = "none";
+            this.errorDiv.style.padding = "8px";
+            this.errorDiv.style.color = "#b00020";
+            this.errorDiv.style.fontSize = "12px";
+            this.target.appendChild(this.errorDiv);
                 
         }
         
         private isResizing :boolean = false;       
         public update(options: VisualUpdateOptions) {
+            if (!options || !options.dataViews || !options.dataViews[0] || !options.dataViews[0].metadata || !options.dataViews[0].metadata.columns) {
+                return;
+            }
             this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
             
             var div_height = this.target.offsetHeight, div_width = this.target.offsetWidth;
@@ -100,32 +118,23 @@ module powerbi.extensibility.visual.testTooltip4696B540F3494FE5BA002362825DDE7D_
             } 
             
             if(hasCategories){
-                var hasExternalFilter = options.dataViews[0].categorical.categories[0]==options.dataViews[0].categorical.categories[1];
-                if(this.isResizing && options.type==36) {
-                    this.isResizing=false;
-                    document.getElementById("wellcome_div").style.display="none";
+                if (options.type == 4) this.isResizing = true;
+                if (options.type == 36) this.isResizing = false;
+
+                document.getElementById("wellcome_div").style.display="none";
+                if (this.errorDiv) this.errorDiv.style.display = "none";
+                if(div_height-20>0)div_height=div_height-20;
+                try {
+                    callTreeInitializer(div_height,div_width,options,this.host,this.settings,this.idDiv);
+                } catch (e) {
                     if (d3.select("svg")){
                         d3.select("svg").remove();
                     }
-                    if(div_height-20>0)div_height=div_height-20;
-                    inicializarArbol(div_height,div_width,options,this.host,this.settings,this.idDiv);
+                    if (this.errorDiv) {
+                        this.errorDiv.textContent = "Render error: " + ((e && e.message) ? e.message : e);
+                        this.errorDiv.style.display = "block";
+                    }
                 }
-                else  
-                if((options.type != 36 /*&& options.type != 2*/) /*|| (options.type==2 && !hasExternalFilter)*/) {
-                    if (options.type == 4) this.isResizing=true;
-                    else {
-                        document.getElementById("wellcome_div").style.display="none";
-                        if (d3.select("svg")){
-                            //d3.select("svg").remove();
-                        }
-                        if(div_height-20>0)div_height=div_height-20;
-                        inicializarArbol(div_height,div_width,options,this.host,this.settings,this.idDiv);
-                        
-
-                            
-                    }   
-                }
-                
             } else {
                 if (d3.select("svg")){
                     d3.select("svg").remove();

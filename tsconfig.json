@@ -5,16 +5,15 @@
     "experimentalDecorators": true,
     "target": "ES5",
     "sourceMap": true,
-    "out": "./.tmp/build/visual.js"
+    "outDir": ".tmp/build",
+    "lib": ["es5", "dom"],
+    "moduleResolution": "node",
+    "skipLibCheck": true
   },
   "files": [
-    ".api/v2.2.0/PowerBI-visuals.d.ts",
-    "node_modules/powerbi-visuals-utils-dataviewutils/lib/index.d.ts",
-    "node_modules/powerbi-visuals-utils-tooltiputils/lib/index.d.ts",
-    "src/settings.ts",
     "src/visual.ts",
-    "node_modules/funciones-arbol.js",
-    "src/tooltipServiceWrapper.ts",
-    "src/objectEnumerationUtility.ts"
+    "src/settings.ts",
+    "src/objectEnumerationUtility.ts",
+    "src/tooltipServiceWrapper.ts"
   ]
 }
