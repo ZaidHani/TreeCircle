@@ -394,11 +394,11 @@ export class Visual {
                     .style("stroke", arcBaseColor);
 
                 nodeEnter.append("text")
-                    .attr("dx", function(d: any) { return d.children && d.children.length ? -12 : 12; })
+                    .attr("dx", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? -12 : 12; })
                     .attr("x", categoryLabelX)
                     .attr("y", categoryLabelY)
                     .attr("dy", ".35em")
-                    .style("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
+                    .style("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
                     .style("font-size", nodeTextSize + "px")
                     .style("fill", labelColor)
                     .text((d: any) => {
@@ -427,7 +427,7 @@ export class Visual {
                             .attr("x", valueLabelX)
                             .attr("y", valueLabelY)
                             .attr("dy", "0.35em")
-                            .attr("text-anchor", function(d: any) { return d.children && d.children.length ? "end" : "start"; })
+                            .attr("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
                             .text(valueText)
                             .style("fill", valueLabelColor)
                             .style("fill-opacity", 1)
