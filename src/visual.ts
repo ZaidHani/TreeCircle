@@ -394,7 +394,7 @@ export class Visual {
                     .style("stroke", arcBaseColor);
 
                 nodeEnter.append("text")
-                    .attr("dx", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? -12 : 12; })
+                    .attr("dx", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? -12 : 0; })
                     .attr("x", categoryLabelX)
                     .attr("y", categoryLabelY)
                     .attr("dy", ".35em")
@@ -424,7 +424,7 @@ export class Visual {
                                 .attr("width", Math.max(0, valueText.length * nodeTextSize * 0.65 - 8));
                         }
                         el.append("text")
-                            .attr("x", valueLabelX)
+                            .attr("x", function(d: any) { return d.category === "Root" ? valueLabelX - 10 : valueLabelX; })
                             .attr("y", valueLabelY)
                             .attr("dy", "0.35em")
                             .attr("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
