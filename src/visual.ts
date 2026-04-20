@@ -395,10 +395,13 @@ export class Visual {
 
                 nodeEnter.append("text")
                     .attr("dx", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? -12 : 0; })
-                    .attr("x", function(d: any) { return d.category === "Root" ? Math.max(categoryLabelX - 40, 5) : categoryLabelX; })
+                    .attr("x", function(d: any) { return d.category === "Root" ? categoryLabelX - 24 : categoryLabelX; })
                     .attr("y", categoryLabelY)
                     .attr("dy", ".35em")
-                    .style("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
+                    .style("text-anchor", function(d: any) {
+                        if (d.category === "Root") return "end";
+                        return (d.children && d.children.length && d.category !== "Root") ? "end" : "start";
+                    })
                     .style("font-size", nodeTextSize + "px")
                     .style("fill", labelColor)
                     .text((d: any) => {
@@ -424,10 +427,13 @@ export class Visual {
                                 .attr("width", Math.max(0, valueText.length * nodeTextSize * 0.65 - 8));
                         }
                         el.append("text")
-                            .attr("x", function(d: any) { return d.category === "Root" ? Math.max(valueLabelX - 40, 5) : valueLabelX; })
+                            .attr("x", function(d: any) { return d.category === "Root" ? valueLabelX - 24 : valueLabelX; })
                             .attr("y", valueLabelY)
                             .attr("dy", "0.35em")
-                            .attr("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
+                            .attr("text-anchor", function(d: any) {
+                                if (d.category === "Root") return "end";
+                                return (d.children && d.children.length && d.category !== "Root") ? "end" : "start";
+                            })
                             .text(valueText)
                             .style("fill", valueLabelColor)
                             .style("fill-opacity", 1)
