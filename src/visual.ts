@@ -395,7 +395,7 @@ export class Visual {
 
                 nodeEnter.append("text")
                     .attr("dx", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? -12 : 0; })
-                    .attr("x", categoryLabelX)
+                    .attr("x", function(d: any) { return d.category === "Root" ? Math.max(categoryLabelX - 40, 5) : categoryLabelX; })
                     .attr("y", categoryLabelY)
                     .attr("dy", ".35em")
                     .style("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
@@ -424,7 +424,7 @@ export class Visual {
                                 .attr("width", Math.max(0, valueText.length * nodeTextSize * 0.65 - 8));
                         }
                         el.append("text")
-                            .attr("x", function(d: any) { return d.category === "Root" ? valueLabelX - 20 : valueLabelX; })
+                            .attr("x", function(d: any) { return d.category === "Root" ? Math.max(valueLabelX - 40, 5) : valueLabelX; })
                             .attr("y", valueLabelY)
                             .attr("dy", "0.35em")
                             .attr("text-anchor", function(d: any) { return (d.children && d.children.length && d.category !== "Root") ? "end" : "start"; })
