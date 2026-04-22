@@ -4,8 +4,7 @@
         {
             "displayName": "Categories",
             "name": "category",
-            "kind": "Grouping",
-            "max": 20
+            "kind": "Grouping"
         },
         {
             "displayName": "Value",
@@ -393,8 +392,7 @@
     "dataViewMappings": [
         {
             "conditions": [
-                { "category":{"max":7}, "measure": { "max": 1 }   , "target": { "max": 1 } , "avance":{"max": 1}  }
-                
+                { "category":{"max":20}, "measure": { "max": 1 }   , "target": { "max": 1 } , "avance":{"max": 1}  }
             ],
             "categorical": {
                 "categories": {
