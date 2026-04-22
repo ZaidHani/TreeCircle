@@ -4,7 +4,8 @@
         {
             "displayName": "Categories",
             "name": "category",
-            "kind": "Grouping"
+            "kind": "Grouping",
+            "max": 20
         },
         {
             "displayName": "Value",
